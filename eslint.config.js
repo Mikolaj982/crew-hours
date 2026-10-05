@@ -8,7 +8,7 @@ import pluginQuery from '@tanstack/eslint-plugin-query'
 import eslintConfigPrettier from 'eslint-config-prettier/flat'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'src/types/database.types.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
