@@ -1,25 +1,29 @@
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../auth/useAuth';
 import { Navigate } from 'react-router';
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { loginSchema, type LoginFormValues } from './loginSchema';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 export const LoginPage = () => {
-  const [error, setError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<LoginFormValues>({ resolver: yupResolver(loginSchema) });
   const { session } = useAuth();
 
   if (session) return <Navigate to="/" replace />;
 
-  const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    const formData = new FormData(e.currentTarget);
+  const onSubmit = async (data: LoginFormValues) => {
     const { error } = await supabase.auth.signInWithPassword({
-      email: String(formData.get('email') ?? ''),
-      password: String(formData.get('password') ?? ''),
+      email: data.email,
+      password: data.password,
     });
 
     if (error) {
-      setError('Nie udało się zalogować. Sprawdź swoje dane logowania.');
+      setError('root', { message: 'Błąd logowania: ' + error.message });
       console.error('Error logging in:', error.message);
     }
   };
@@ -27,18 +31,26 @@ export const LoginPage = () => {
   return (
     <div>
       <h1>Logowanie</h1>
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div>
           <label htmlFor="email">Email</label>
-          <input type="email" id="email" name="email" />
+          <input type="email" id="email" {...register('email')} />
+          {errors.email && (
+            <p style={{ color: 'red' }}>{errors.email.message}</p>
+          )}
         </div>
         <div>
           <label htmlFor="password">Hasło</label>
-          <input type="password" id="password" name="password" />
+          <input type="password" id="password" {...register('password')} />
+          {errors.password && (
+            <p style={{ color: 'red' }}>{errors.password.message}</p>
+          )}
         </div>
-        <button type="submit">Zaloguj się</button>
+        <button type="submit" disabled={isSubmitting}>
+          Zaloguj się
+        </button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {errors.root && <p style={{ color: 'red' }}>{errors.root.message}</p>}
     </div>
   );
 };
