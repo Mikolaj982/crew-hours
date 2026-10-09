@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { AuthContext } from './AuthContext';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
