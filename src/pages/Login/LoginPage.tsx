@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../auth/useAuth';
+import { useAuth } from '../../features/auth/useAuth';
 import { Navigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { loginSchema, type LoginFormValues } from './loginSchema';
