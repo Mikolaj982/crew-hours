@@ -7,6 +7,7 @@ export const Layout = () => {
       <nav>
         <Link to="/">Godziny</Link>
         <Link to="/summary">Podsumowanie</Link>
+        <Link to="/staff">Pracownicy</Link>
         <button onClick={() => supabase.auth.signOut()}>Wyloguj</button>
       </nav>
       <main>
