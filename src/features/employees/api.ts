@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import type { TablesInsert } from '../../types/database.types';
 
 export const fetchEmployees = async () => {
   const { data, error } = await supabase
@@ -9,4 +10,10 @@ export const fetchEmployees = async () => {
   if (error) throw error;
 
   return data;
+};
+
+export const createEmployee = async (employee: TablesInsert<'employees'>) => {
+  const { error } = await supabase.from('employees').insert(employee);
+
+  if (error) throw error;
 };

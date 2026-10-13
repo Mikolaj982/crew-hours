@@ -1,5 +1,6 @@
 import { useEmployees } from '../../features/employees/useEmployees';
 import { EmptyList } from '../../components/EmptyList';
+import { AddEmployeeForm } from '../../features/employees/AddEmployeeForm';
 
 export const StaffPage = () => {
   const { data: employees, isPending, isError } = useEmployees();
@@ -17,6 +18,7 @@ export const StaffPage = () => {
 
   return (
     <div>
+      <AddEmployeeForm />
       <h2>Lista pracowników:</h2>
       <h3>Aktywni:</h3>
       <ul>
