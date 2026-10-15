@@ -18,11 +18,11 @@ export const AddEmployeeForm = () => {
       onSuccess: () => {
         reset();
       },
-      onError: () => {
+      onError: (error) => {
         setError('root', {
           message: 'Wystąpił błąd przy dodawaniu pracownika',
         });
-        console.error('Error adding employee', errors.root?.message);
+        console.error('Error adding employee', error);
       },
     });
   };

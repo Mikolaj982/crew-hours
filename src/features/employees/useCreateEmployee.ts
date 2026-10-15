@@ -6,8 +6,6 @@ export const useCreateEmployee = () => {
 
   return useMutation({
     mutationFn: createEmployee,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees'] }),
   });
 };

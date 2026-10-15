@@ -17,3 +17,20 @@ export const createEmployee = async (employee: TablesInsert<'employees'>) => {
 
   if (error) throw error;
 };
+
+export type SetEmployeeActiveParams = {
+  employeeId: string;
+  isActive: boolean;
+};
+
+export const setEmployeeActive = async ({
+  employeeId,
+  isActive,
+}: SetEmployeeActiveParams) => {
+  const { error } = await supabase
+    .from('employees')
+    .update({ is_active: isActive })
+    .eq('id', employeeId);
+
+  if (error) throw error;
+};
