@@ -1,19 +1,13 @@
 import { useEmployees } from '../../features/employees/useEmployees';
 import { EmptyList } from '../../components/EmptyList';
 import { AddEmployeeForm } from '../../features/employees/AddEmployeeForm';
-import { useSetEmployeeActive } from '../../features/employees/useSetEmployeeActive';
-import type { SetEmployeeActiveParams } from '../../features/employees/api';
 import { AddSiteForm } from '../../features/sites/AddSiteForm';
 import { SitesList } from '../../features/sites/SitesList';
 import { useSites } from '../../features/sites/useSites';
+import { EmployeesList } from '../../features/employees/EmployeesList';
 
 export const StaffAndSitesPage = () => {
   const { data: employees, isPending, isError } = useEmployees();
-  const {
-    mutate,
-    isPending: isPendingForSetActive,
-    isError: isSetEmployeeActiveError,
-  } = useSetEmployeeActive();
   const {
     data: sites,
     isPending: isPendingSites,
@@ -36,65 +30,30 @@ export const StaffAndSitesPage = () => {
     return <div>Nie udało się załadować listy budów.</div>;
   }
 
-  const handleActive = (data: SetEmployeeActiveParams) => {
-    mutate(data, {
-      onError: (error) => {
-        console.error('Error moving employee status', error);
-      },
-    });
-  };
-
   const activeEmployees = employees.filter((employee) => employee.is_active);
   const archivedEmployees = employees.filter((employee) => !employee.is_active);
 
   return (
     <div>
       <AddSiteForm />
-      <SitesList sites={sites} />
+      {sites.length > 0 ? (
+        <SitesList sites={sites} />
+      ) : (
+        <EmptyList message="Brak budów do wyświetlenia" />
+      )}
       <AddEmployeeForm />
       <h2>Lista pracowników:</h2>
       <h3>Aktywni:</h3>
       {activeEmployees.length > 0 ? (
-        <ul>
-          {activeEmployees.map((employee) => (
-            <li key={employee.id}>
-              {employee.name}
-              <button
-                onClick={() =>
-                  handleActive({ employeeId: employee.id, isActive: false })
-                }
-                disabled={isPendingForSetActive}
-              >
-                Archiwizuj
-              </button>
-            </li>
-          ))}
-        </ul>
+        <EmployeesList employees={activeEmployees} isActive={true} />
       ) : (
         <EmptyList message="Brak aktywnych pracowników." />
       )}
       <h3>Nieaktywni:</h3>
       {archivedEmployees.length > 0 ? (
-        <ul>
-          {archivedEmployees.map((employee) => (
-            <li key={employee.id}>
-              {employee.name}
-              <button
-                onClick={() =>
-                  handleActive({ employeeId: employee.id, isActive: true })
-                }
-                disabled={isPendingForSetActive}
-              >
-                Przywróć
-              </button>
-            </li>
-          ))}
-        </ul>
+        <EmployeesList employees={archivedEmployees} isActive={false} />
       ) : (
         <EmptyList message="Brak zarchiwizowanych pracowników." />
-      )}
-      {isSetEmployeeActiveError && (
-        <p>Coś poszło nie tak... Spróbuj ponownie</p>
       )}
     </div>
   );
