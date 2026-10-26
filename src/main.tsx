@@ -13,7 +13,7 @@ import { NotFoundPage } from './pages/NotFound/NotFoundPage.tsx';
 import { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { StaffPage } from './pages/Staff/StaffPage.tsx';
+import { StaffAndSitesPage } from './pages/StaffAndSites/StaffAndSitesPage.tsx';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
         element: <Layout />,
         children: [
           { path: '/', element: <HoursPage /> },
-          { path: '/staff', element: <StaffPage /> },
+          { path: '/staff', element: <StaffAndSitesPage /> },
           { path: '/summary', element: <SummaryPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

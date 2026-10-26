@@ -3,14 +3,22 @@ import { EmptyList } from '../../components/EmptyList';
 import { AddEmployeeForm } from '../../features/employees/AddEmployeeForm';
 import { useSetEmployeeActive } from '../../features/employees/useSetEmployeeActive';
 import type { SetEmployeeActiveParams } from '../../features/employees/api';
+import { AddSiteForm } from '../../features/sites/AddSiteForm';
+import { SitesList } from '../../features/sites/SitesList';
+import { useSites } from '../../features/sites/useSites';
 
-export const StaffPage = () => {
+export const StaffAndSitesPage = () => {
   const { data: employees, isPending, isError } = useEmployees();
   const {
     mutate,
     isPending: isPendingForSetActive,
     isError: isSetEmployeeActiveError,
   } = useSetEmployeeActive();
+  const {
+    data: sites,
+    isPending: isPendingSites,
+    isError: isErrorSites,
+  } = useSites();
 
   if (isPending) {
     return <div>Ładowanie...</div>;
@@ -18,6 +26,14 @@ export const StaffPage = () => {
 
   if (isError) {
     return <div>Nie udało się załadować listy pracowników.</div>;
+  }
+
+  if (isPendingSites) {
+    return <div>Ładowanie...</div>;
+  }
+
+  if (isErrorSites) {
+    return <div>Nie udało się załadować listy budów.</div>;
   }
 
   const handleActive = (data: SetEmployeeActiveParams) => {
@@ -33,6 +49,8 @@ export const StaffPage = () => {
 
   return (
     <div>
+      <AddSiteForm />
+      <SitesList sites={sites} />
       <AddEmployeeForm />
       <h2>Lista pracowników:</h2>
       <h3>Aktywni:</h3>
