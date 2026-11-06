@@ -13,7 +13,10 @@
     "gen:types": "supabase gen types typescript --linked > src/types/database.types.ts"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.9.1",
+    "@mui/material": "^9.5.0",
     "@supabase/supabase-js": "^2.117.2",
     "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-query-devtools": "^5.104.1",
