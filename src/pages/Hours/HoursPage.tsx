@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useSites } from '../../features/sites/useSites';
 import { SiteTabs } from '../../features/hours/SiteTabs';
 import { MonthSwitcher } from '../../features/hours/MonthSwitcher';
+import { HoursGrid } from '../../features/hours/HoursGrid';
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -70,6 +71,7 @@ export const HoursPage = () => {
         month={month}
         onChange={(value) => setParam('month', value)}
       />
+      <HoursGrid siteId={selectedSite.id} month={month} />
     </div>
   );
 };
