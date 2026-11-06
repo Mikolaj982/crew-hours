@@ -1,11 +1,13 @@
 import { Link, useSearchParams } from 'react-router';
 import { format } from 'date-fns';
 import { useSites } from '../../features/sites/useSites';
+import { SiteTabs } from '../../features/hours/SiteTabs';
+import { MonthSwitcher } from '../../features/hours/MonthSwitcher';
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export const HoursPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: sites, isPending, isError } = useSites();
 
   const monthParam = searchParams.get('month');
@@ -44,13 +46,30 @@ export const HoursPage = () => {
     );
   }
 
+  const tabSites = sites.filter(
+    (site) => site.is_active || site.id === selectedSite.id,
+  );
+
+  const setParam = (key: 'site' | 'month', value: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set(key, value);
+      return next;
+    });
+  };
+
   return (
     <div>
       <h1>Godziny</h1>
-      <p>
-        {selectedSite.name}
-        {!selectedSite.is_active && ' (archiwum)'} - {month}
-      </p>
+      <SiteTabs
+        sites={tabSites}
+        selectedSiteId={selectedSite.id}
+        onSelect={(id) => setParam('site', id)}
+      />
+      <MonthSwitcher
+        month={month}
+        onChange={(value) => setParam('month', value)}
+      />
     </div>
   );
 };
