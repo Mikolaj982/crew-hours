@@ -1,3 +1,4 @@
+import { Tab, Tabs } from '@mui/material';
 import type { Tables } from '../../types/database.types';
 
 type SiteTabsProps = {
@@ -12,19 +13,20 @@ export const SiteTabs = ({
   onSelect,
 }: SiteTabsProps) => {
   return (
-    <div role="tablist">
+    <Tabs
+      value={selectedSiteId}
+      onChange={(_event, siteId: string) => onSelect(siteId)}
+      variant="scrollable"
+      allowScrollButtonsMobile
+      aria-label="Budowy"
+    >
       {sites.map((site) => (
-        <button
+        <Tab
           key={site.id}
-          role="tab"
-          aria-selected={site.id === selectedSiteId}
-          disabled={site.id === selectedSiteId}
-          onClick={() => onSelect(site.id)}
-        >
-          {site.name}
-          {!site.is_active && ' (archiwum)'}
-        </button>
+          value={site.id}
+          label={site.is_active ? site.name : `${site.name} (archiwum)`}
+        />
       ))}
-    </div>
+    </Tabs>
   );
 };

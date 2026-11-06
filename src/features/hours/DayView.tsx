@@ -1,11 +1,13 @@
-import { addDays, format, parse } from 'date-fns';
+import { addDays, format, isToday, parse } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { Stack, Typography } from '@mui/material';
+import { Alert, Box, Paper, Stack, Typography } from '@mui/material';
 import { useTimeEntries } from './useTimeEntries';
 import { useEmployees } from '../employees/useEmployees';
 import { buildHoursMatrix, getVisibleEmployees } from './matrix';
 import { formatHours } from './calendar';
 import { DayHoursField } from './DayHoursField';
+import { Loading } from '../../components/Loading';
+import { PeriodSwitcher } from '../../components/PeriodSwitcher';
 
 type DayViewProps = {
   siteId: string;
@@ -25,69 +27,82 @@ export const DayView = ({ siteId, day, onDayChange }: DayViewProps) => {
   };
 
   const switcher = (
-    <Stack
-      direction="row"
-      sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-    >
-      <button aria-label="Poprzedni dzień" onClick={() => goTo(-1)}>
-        ◀
-      </button>
-      <Typography>
-        {format(date, 'EEEE, d MMMM yyyy', { locale: pl })}
-      </Typography>
-      <button aria-label="Następny dzień" onClick={() => goTo(1)}>
-        ▶
-      </button>
-    </Stack>
+    <PeriodSwitcher
+      label={format(date, 'EEEE, d MMMM', { locale: pl })}
+      prevLabel="Poprzedni dzień"
+      nextLabel="Następny dzień"
+      todayLabel="Dziś"
+      isCurrent={isToday(date)}
+      onPrev={() => goTo(-1)}
+      onNext={() => goTo(1)}
+      onToday={() => onDayChange(format(new Date(), 'yyyy-MM-dd'))}
+    />
   );
 
-  if (entriesQuery.isPending || employeesQuery.isPending) {
-    return (
-      <Stack spacing={2}>
-        {switcher}
-        <div>Ładowanie godzin...</div>
-      </Stack>
-    );
-  }
+  const renderContent = () => {
+    if (entriesQuery.isPending || employeesQuery.isPending) {
+      return <Loading />;
+    }
 
-  if (entriesQuery.isError || employeesQuery.isError) {
-    return (
-      <Stack spacing={2}>
-        {switcher}
-        <div>Nie udało się załadować godzin.</div>
-      </Stack>
-    );
-  }
+    if (entriesQuery.isError || employeesQuery.isError) {
+      return <Alert severity="error">Nie udało się załadować godzin.</Alert>;
+    }
 
-  const matrix = buildHoursMatrix(entriesQuery.data);
-  const rows = getVisibleEmployees(employeesQuery.data, matrix);
-  const dayTotal = rows.reduce(
-    (sum, employee) => sum + (matrix[employee.id]?.[day] ?? 0),
-    0,
-  );
+    const matrix = buildHoursMatrix(entriesQuery.data);
+    const rows = getVisibleEmployees(employeesQuery.data, matrix);
+    const dayTotal = rows.reduce(
+      (sum, employee) => sum + (matrix[employee.id]?.[day] ?? 0),
+      0,
+    );
+
+    if (rows.length === 0) {
+      return (
+        <Alert severity="info">
+          Brak pracowników. Dodaj ich w zakładce „Ludzie”.
+        </Alert>
+      );
+    }
+
+    return (
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Stack spacing={1}>
+          {rows.map((employee) => (
+            <DayHoursField
+              key={`${employee.id}-${day}`}
+              label={
+                employee.is_active
+                  ? employee.name
+                  : `${employee.name} (archiwum)`
+              }
+              employeeId={employee.id}
+              siteId={siteId}
+              date={day}
+              savedHours={matrix[employee.id]?.[day]}
+            />
+          ))}
+        </Stack>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            pt: 2,
+            borderTop: 1,
+            borderColor: 'divider',
+          }}
+        >
+          <Typography>Suma dnia</Typography>
+          <Typography sx={{ fontWeight: 'bold' }}>
+            {formatHours(dayTotal)} h
+          </Typography>
+        </Box>
+      </Paper>
+    );
+  };
 
   return (
     <Stack spacing={2}>
       {switcher}
-      {rows.length === 0 ? (
-        <p>Brak pracowników do wyświetlenia.</p>
-      ) : (
-        rows.map((employee) => (
-          <DayHoursField
-            key={`${employee.id}-${day}`}
-            label={
-              employee.is_active ? employee.name : `${employee.name} (archiwum)`
-            }
-            employeeId={employee.id}
-            siteId={siteId}
-            date={day}
-            savedHours={matrix[employee.id]?.[day]}
-          />
-        ))
-      )}
-      <Typography sx={{ fontWeight: 'bold' }}>
-        Suma dnia: {formatHours(dayTotal)} h
-      </Typography>
+      {renderContent()}
     </Stack>
   );
 };

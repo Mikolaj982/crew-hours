@@ -1,4 +1,4 @@
-import { TextField } from '@mui/material';
+import { InputAdornment, TextField } from '@mui/material';
 import { useHoursInput } from './useHoursInput';
 
 type DayHoursFieldProps = {
@@ -23,7 +23,12 @@ export const DayHoursField = ({ label, ...entry }: DayHoursFieldProps) => {
       error={error !== null}
       helperText={error ?? (isPending ? 'Zapisywanie...' : ' ')}
       fullWidth
-      slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+      slotProps={{
+        htmlInput: { inputMode: 'decimal' },
+        input: {
+          endAdornment: <InputAdornment position="end">h</InputAdornment>,
+        },
+      }}
     />
   );
 };
