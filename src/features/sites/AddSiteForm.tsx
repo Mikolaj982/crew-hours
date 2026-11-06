@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { Button, Stack, TextField } from '@mui/material';
 import { addSiteSchema, type SiteData } from './addSiteSchema';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCreateSite } from './useCreateSite';
@@ -13,6 +14,7 @@ export const AddSiteForm = () => {
     formState: { errors },
     setError,
     reset,
+    setFocus,
   } = useForm<SiteData>({
     resolver: yupResolver(addSiteSchema),
   });
@@ -21,6 +23,7 @@ export const AddSiteForm = () => {
     mutate(siteFormValues, {
       onSuccess: () => {
         reset();
+        setFocus('name');
       },
       onError: (error) => {
         if (
@@ -40,17 +43,35 @@ export const AddSiteForm = () => {
     });
   };
 
+  const { ref: nameRef, ...nameField } = register('name');
+  const errorMessage = errors.name?.message ?? errors.root?.message;
+
   return (
-    <div>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <label htmlFor="siteName">Nazwa budowy</label>
-        <input id="siteName" {...register('name')} required />
-        {errors.name && <p style={{ color: 'red' }}>{errors.name.message}</p>}
-        <button type="submit" disabled={isPending}>
-          Zapisz
-        </button>
-      </form>
-      {errors.root && <p style={{ color: 'red' }}>{errors.root.message}</p>}
-    </div>
+    <Stack
+      component="form"
+      direction="row"
+      spacing={1}
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      sx={{ alignItems: 'flex-start' }}
+    >
+      <TextField
+        {...nameField}
+        inputRef={nameRef}
+        label="Nazwa budowy"
+        size="small"
+        fullWidth
+        error={errorMessage !== undefined}
+        helperText={errorMessage}
+      />
+      <Button
+        type="submit"
+        variant="contained"
+        disabled={isPending}
+        sx={{ flexShrink: 0, height: 40 }}
+      >
+        Dodaj
+      </Button>
+    </Stack>
   );
 };

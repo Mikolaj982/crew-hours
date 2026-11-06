@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { Button, Stack, TextField } from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { addEmployeeSchema, type EmployeeData } from './addEmployeeSchema';
 import { useCreateEmployee } from './useCreateEmployee';
@@ -11,12 +12,14 @@ export const AddEmployeeForm = () => {
     formState: { errors },
     setError,
     reset,
+    setFocus,
   } = useForm<EmployeeData>({ resolver: yupResolver(addEmployeeSchema) });
 
   const onSubmit = (employee: EmployeeData) => {
     mutate(employee, {
       onSuccess: () => {
         reset();
+        setFocus('name');
       },
       onError: (error) => {
         setError('root', {
@@ -27,17 +30,35 @@ export const AddEmployeeForm = () => {
     });
   };
 
+  const { ref: nameRef, ...nameField } = register('name');
+  const errorMessage = errors.name?.message ?? errors.root?.message;
+
   return (
-    <div>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <label htmlFor="name">Imię i nazwisko:</label>
-        <input type="text" id="name" {...register('name')} required />
-        {errors.name && <p style={{ color: 'red' }}>{errors.name.message}</p>}
-        <button type="submit" disabled={isPending}>
-          Dodaj pracownika
-        </button>
-      </form>
-      {errors.root && <p style={{ color: 'red' }}>{errors.root.message}</p>}
-    </div>
+    <Stack
+      component="form"
+      direction="row"
+      spacing={1}
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      sx={{ alignItems: 'flex-start' }}
+    >
+      <TextField
+        {...nameField}
+        inputRef={nameRef}
+        label="Imię i nazwisko"
+        size="small"
+        fullWidth
+        error={errorMessage !== undefined}
+        helperText={errorMessage}
+      />
+      <Button
+        type="submit"
+        variant="contained"
+        disabled={isPending}
+        sx={{ flexShrink: 0, height: 40 }}
+      >
+        Dodaj
+      </Button>
+    </Stack>
   );
 };
