@@ -11,6 +11,7 @@ import { useTimeEntries } from './useTimeEntries';
 import { useEmployees } from '../employees/useEmployees';
 import { buildHoursMatrix, getVisibleEmployees } from './matrix';
 import { formatHours, getMonthDays } from './calendar';
+import { HoursCell } from './HoursCell';
 
 type HoursGridProps = {
   siteId: string;
@@ -82,18 +83,16 @@ export const HoursGrid = ({ siteId, month }: HoursGridProps) => {
                 {employee.name}
                 {!employee.is_active && ' (archiwum)'}
               </TableCell>
-              {days.map((day) => {
-                const hours = matrix[employee.id]?.[day.date];
-                return (
-                  <TableCell
-                    key={day.date}
-                    align="center"
-                    sx={day.isWeekend ? weekendCell : undefined}
-                  >
-                    {hours !== undefined && formatHours(hours)}
-                  </TableCell>
-                );
-              })}
+              {days.map((day) => (
+                <HoursCell
+                  key={day.date}
+                  employeeId={employee.id}
+                  siteId={siteId}
+                  date={day.date}
+                  savedHours={matrix[employee.id]?.[day.date]}
+                  isWeekend={day.isWeekend}
+                />
+              ))}
               <TableCell align="right">
                 {formatHours(sumRow(employee.id))}
               </TableCell>
