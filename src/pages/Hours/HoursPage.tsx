@@ -6,7 +6,15 @@ import { MonthSwitcher } from '../../features/hours/MonthSwitcher';
 import { HoursGrid } from '../../features/hours/HoursGrid';
 import { DayView } from '../../features/hours/DayView';
 import { getMonthDays, parseMonthParam } from '../../features/hours/calendar';
-import { useMediaQuery, useTheme } from '@mui/material';
+import {
+  Alert,
+  Button,
+  Paper,
+  Stack,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import { Loading } from '../../components/Loading';
 
 export const HoursPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,19 +36,25 @@ export const HoursPage = () => {
         : `${month}-01`;
 
   if (isPending) {
-    return <div>Ładowanie...</div>;
+    return <Loading />;
   }
 
   if (isError) {
-    return <div>Nie udało się załadować listy budów.</div>;
+    return <Alert severity="error">Nie udało się załadować listy budów.</Alert>;
   }
 
   if (sites.length === 0) {
     return (
-      <div>
-        <p>Nie ma jeszcze żadnej budowy.</p>
-        <Link to="/staff">Dodaj pierwszą budowę</Link>
-      </div>
+      <Alert
+        severity="info"
+        action={
+          <Button component={Link} to="/staff" color="inherit" size="small">
+            Dodaj budowę
+          </Button>
+        }
+      >
+        Nie ma jeszcze żadnej budowy.
+      </Alert>
     );
   }
 
@@ -50,10 +64,17 @@ export const HoursPage = () => {
 
   if (!selectedSite) {
     return (
-      <div>
-        <p>Nie znaleziono budowy.</p>
-        <Link to="/">Wróć do godzin</Link>
-      </div>
+      <Alert
+        severity="warning"
+        action={
+          <Button component={Link} to="/staff" color="inherit" size="small">
+            Budowy
+          </Button>
+        }
+      >
+        Nie znaleziono budowy. Mogła zostać usunięta albo wszystkie budowy są
+        zarchiwizowane.
+      </Alert>
     );
   }
 
@@ -74,13 +95,14 @@ export const HoursPage = () => {
   };
 
   return (
-    <div>
-      <h1>Godziny</h1>
-      <SiteTabs
-        sites={tabSites}
-        selectedSiteId={selectedSite.id}
-        onSelect={(id) => setParams({ site: id })}
-      />
+    <Stack spacing={2}>
+      <Paper variant="outlined">
+        <SiteTabs
+          sites={tabSites}
+          selectedSiteId={selectedSite.id}
+          onSelect={(id) => setParams({ site: id })}
+        />
+      </Paper>
       {isMobile ? (
         <DayView
           siteId={selectedSite.id}
@@ -98,6 +120,6 @@ export const HoursPage = () => {
           <HoursGrid siteId={selectedSite.id} month={month} />
         </>
       )}
-    </div>
+    </Stack>
   );
 };

@@ -3,6 +3,7 @@ import {
   eachDayOfInterval,
   endOfMonth,
   format,
+  isToday,
   isWeekend,
   parse,
 } from 'date-fns';
@@ -27,6 +28,7 @@ export type MonthDay = {
   dayOfMonth: number;
   weekday: string;
   isWeekend: boolean;
+  isToday: boolean;
 };
 
 export const getMonthDays = (month: string): MonthDay[] => {
@@ -37,6 +39,7 @@ export const getMonthDays = (month: string): MonthDay[] => {
     dayOfMonth: day.getDate(),
     weekday: format(day, 'EEEEEE', { locale: pl }),
     isWeekend: isWeekend(day),
+    isToday: isToday(day),
   }));
 };
 
