@@ -1,7 +1,9 @@
 import { format, parse } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import {
+  Alert,
   Box,
+  Paper,
   Table,
   TableBody,
   TableCell,
@@ -14,6 +16,7 @@ import { useEmployees } from '../employees/useEmployees';
 import { useTimeEntries } from '../hours/useTimeEntries';
 import { buildHoursMatrix } from '../hours/matrix';
 import { formatHours, getMonthDays } from '../hours/calendar';
+import { Loading } from '../../components/Loading';
 
 type SiteReportProps = {
   siteId: string;
@@ -32,17 +35,17 @@ export const SiteReport = ({ siteId, month }: SiteReportProps) => {
     employeesQuery.isPending ||
     entriesQuery.isPending
   ) {
-    return <div>Ładowanie...</div>;
+    return <Loading />;
   }
 
   if (sitesQuery.isError || employeesQuery.isError || entriesQuery.isError) {
-    return <div>Nie udało się załadować raportu.</div>;
+    return <Alert severity="error">Nie udało się załadować raportu.</Alert>;
   }
 
   const site = sitesQuery.data.find((s) => s.id === siteId);
 
   if (!site) {
-    return <div>Nie znaleziono budowy.</div>;
+    return <Alert severity="warning">Nie znaleziono budowy.</Alert>;
   }
 
   const matrix = buildHoursMatrix(entriesQuery.data);
@@ -55,20 +58,31 @@ export const SiteReport = ({ siteId, month }: SiteReportProps) => {
   const sumDay = (date: string) =>
     people.reduce((sum, e) => sum + (matrix[e.id]?.[date] ?? 0), 0);
   const total = entriesQuery.data.reduce((sum, entry) => sum + entry.hours, 0);
-  const period = format(parse(month, 'yyyy-MM', new Date()), 'LLLL yyyy', {
+  const monthName = format(parse(month, 'yyyy-MM', new Date()), 'LLLL yyyy', {
     locale: pl,
   });
+  const period = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: 2, bgcolor: 'background.paper' }}>
-      <Typography variant="h5">{site.name}</Typography>
-      {companyName && <Typography>{companyName}</Typography>}
+    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
+      {companyName && (
+        <Typography
+          variant="overline"
+          color="text.secondary"
+          sx={{ display: 'block', lineHeight: 1.5 }}
+        >
+          {companyName}
+        </Typography>
+      )}
+      <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
+        {site.name}
+      </Typography>
       <Typography color="text.secondary" sx={{ mb: 2 }}>
-        Godziny pracy: {period}
+        Godziny pracy · {period}
       </Typography>
 
       {people.length === 0 ? (
-        <p>Brak godzin w tym miesiącu.</p>
+        <Alert severity="info">Brak godzin w tym miesiącu.</Alert>
       ) : (
         <Table size="small">
           <TableHead>
@@ -84,7 +98,10 @@ export const SiteReport = ({ siteId, month }: SiteReportProps) => {
           </TableHead>
           <TableBody>
             {days.map((day) => (
-              <TableRow key={day.date}>
+              <TableRow
+                key={day.date}
+                sx={day.isWeekend ? { bgcolor: 'action.hover' } : undefined}
+              >
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   {day.weekday} {day.dayOfMonth}
                 </TableCell>
@@ -119,6 +136,24 @@ export const SiteReport = ({ siteId, month }: SiteReportProps) => {
           </TableBody>
         </Table>
       )}
-    </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          mt: 2,
+          p: 2,
+          borderRadius: 1,
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+        }}
+      >
+        <Typography>Razem</Typography>
+        <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
+          {formatHours(total)} h
+        </Typography>
+      </Box>
+    </Paper>
   );
 };
