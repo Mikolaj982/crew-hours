@@ -4,6 +4,16 @@ import { Navigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { loginSchema, type LoginFormValues } from './loginSchema';
 import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 
 export const LoginPage = () => {
   const {
@@ -23,34 +33,76 @@ export const LoginPage = () => {
     });
 
     if (error) {
-      setError('root', { message: 'Błąd logowania: ' + error.message });
+      setError('root', {
+        message:
+          error.code === 'invalid_credentials'
+            ? 'Nieprawidłowy e-mail lub hasło.'
+            : 'Nie udało się zalogować. Spróbuj ponownie.',
+      });
       console.error('Error logging in:', error.message);
     }
   };
 
+  const { ref: emailRef, ...emailField } = register('email');
+  const { ref: passwordRef, ...passwordField } = register('password');
+
   return (
-    <div>
-      <h1>Logowanie</h1>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input type="email" id="email" {...register('email')} />
-          {errors.email && (
-            <p style={{ color: 'red' }}>{errors.email.message}</p>
-          )}
-        </div>
-        <div>
-          <label htmlFor="password">Hasło</label>
-          <input type="password" id="password" {...register('password')} />
-          {errors.password && (
-            <p style={{ color: 'red' }}>{errors.password.message}</p>
-          )}
-        </div>
-        <button type="submit" disabled={isSubmitting}>
-          Zaloguj się
-        </button>
-      </form>
-      {errors.root && <p style={{ color: 'red' }}>{errors.root.message}</p>}
-    </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 2,
+      }}
+    >
+      <Card variant="outlined" sx={{ width: '100%', maxWidth: 400 }}>
+        <CardContent sx={{ p: 4 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
+            Godzinówka
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            Zaloguj się, aby wpisać godziny.
+          </Typography>
+          <Stack
+            component="form"
+            spacing={2}
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+          >
+            {errors.root && (
+              <Alert severity="error">{errors.root.message}</Alert>
+            )}
+            <TextField
+              {...emailField}
+              inputRef={emailRef}
+              type="email"
+              label="E-mail"
+              autoComplete="email"
+              autoFocus
+              error={errors.email !== undefined}
+              helperText={errors.email?.message}
+            />
+            <TextField
+              {...passwordField}
+              inputRef={passwordRef}
+              type="password"
+              label="Hasło"
+              autoComplete="current-password"
+              error={errors.password !== undefined}
+              helperText={errors.password?.message}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={isSubmitting}
+            >
+              Zaloguj się
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
