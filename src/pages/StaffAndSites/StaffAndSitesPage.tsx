@@ -1,60 +1,36 @@
+import { Alert, Stack } from '@mui/material';
 import { useEmployees } from '../../features/employees/useEmployees';
-import { EmptyList } from '../../components/EmptyList';
-import { AddEmployeeForm } from '../../features/employees/AddEmployeeForm';
-import { AddSiteForm } from '../../features/sites/AddSiteForm';
-import { SitesList } from '../../features/sites/SitesList';
 import { useSites } from '../../features/sites/useSites';
-import { EmployeesList } from '../../features/employees/EmployeesList';
+import { EmployeesPanel } from '../../features/employees/EmployeesPanel';
+import { SitesPanel } from '../../features/sites/SitesPanel';
+import { Loading } from '../../components/Loading';
 
 export const StaffAndSitesPage = () => {
-  const { data: employees, isPending, isError } = useEmployees();
-  const {
-    data: sites,
-    isPending: isPendingSites,
-    isError: isErrorSites,
-  } = useSites();
+  const employeesQuery = useEmployees();
+  const sitesQuery = useSites();
 
-  if (isPending) {
-    return <div>Ładowanie...</div>;
+  if (employeesQuery.isPending || sitesQuery.isPending) {
+    return <Loading />;
   }
 
-  if (isError) {
-    return <div>Nie udało się załadować listy pracowników.</div>;
+  if (employeesQuery.isError) {
+    return (
+      <Alert severity="error">Nie udało się załadować listy pracowników.</Alert>
+    );
   }
 
-  if (isPendingSites) {
-    return <div>Ładowanie...</div>;
+  if (sitesQuery.isError) {
+    return <Alert severity="error">Nie udało się załadować listy budów.</Alert>;
   }
-
-  if (isErrorSites) {
-    return <div>Nie udało się załadować listy budów.</div>;
-  }
-
-  const activeEmployees = employees.filter((employee) => employee.is_active);
-  const archivedEmployees = employees.filter((employee) => !employee.is_active);
 
   return (
-    <div>
-      <AddSiteForm />
-      {sites.length > 0 ? (
-        <SitesList sites={sites} />
-      ) : (
-        <EmptyList message="Brak budów do wyświetlenia" />
-      )}
-      <AddEmployeeForm />
-      <h2>Lista pracowników:</h2>
-      <h3>Aktywni:</h3>
-      {activeEmployees.length > 0 ? (
-        <EmployeesList employees={activeEmployees} isActive={true} />
-      ) : (
-        <EmptyList message="Brak aktywnych pracowników." />
-      )}
-      <h3>Nieaktywni:</h3>
-      {archivedEmployees.length > 0 ? (
-        <EmployeesList employees={archivedEmployees} isActive={false} />
-      ) : (
-        <EmptyList message="Brak zarchiwizowanych pracowników." />
-      )}
-    </div>
+    <Stack
+      direction={{ xs: 'column', md: 'row' }}
+      spacing={2}
+      sx={{ alignItems: { md: 'flex-start' } }}
+    >
+      <EmployeesPanel employees={employeesQuery.data} />
+      <SitesPanel sites={sitesQuery.data} />
+    </Stack>
   );
 };
