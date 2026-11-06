@@ -15,3 +15,8 @@ export const buildHoursMatrix = (entries: TimeEntry[]): HoursMatrix => {
 
   return matrix;
 };
+
+export const getVisibleEmployees = (
+  employees: Tables<'employees'>[],
+  matrix: HoursMatrix,
+) => employees.filter((employee) => employee.is_active || matrix[employee.id]);

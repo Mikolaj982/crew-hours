@@ -9,7 +9,7 @@ import {
 import type { SxProps, Theme } from '@mui/material';
 import { useTimeEntries } from './useTimeEntries';
 import { useEmployees } from '../employees/useEmployees';
-import { buildHoursMatrix } from './matrix';
+import { buildHoursMatrix, getVisibleEmployees } from './matrix';
 import { formatHours, getMonthDays } from './calendar';
 
 type HoursGridProps = {
@@ -41,9 +41,7 @@ export const HoursGrid = ({ siteId, month }: HoursGridProps) => {
 
   const matrix = buildHoursMatrix(entriesQuery.data);
   const days = getMonthDays(month);
-  const rows = employeesQuery.data.filter(
-    (employee) => employee.is_active || matrix[employee.id],
-  );
+  const rows = getVisibleEmployees(employeesQuery.data, matrix);
 
   if (rows.length === 0) {
     return <p>Brak pracowników do wyświetlenia.</p>;

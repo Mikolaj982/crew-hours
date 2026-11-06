@@ -4,18 +4,34 @@ import { useSites } from '../../features/sites/useSites';
 import { SiteTabs } from '../../features/hours/SiteTabs';
 import { MonthSwitcher } from '../../features/hours/MonthSwitcher';
 import { HoursGrid } from '../../features/hours/HoursGrid';
+import { DayView } from '../../features/hours/DayView';
+import { getMonthDays } from '../../features/hours/calendar';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export const HoursPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: sites, isPending, isError } = useSites();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  const today = format(new Date(), 'yyyy-MM-dd');
   const monthParam = searchParams.get('month');
   const month =
     monthParam && MONTH_PATTERN.test(monthParam)
       ? monthParam
-      : format(new Date(), 'yyyy-MM');
+      : today.slice(0, 7);
+
+  const dayParam = searchParams.get('day');
+  const isDayInMonth = (date: string) =>
+    getMonthDays(month).some((monthDay) => monthDay.date === date);
+  const day =
+    dayParam && isDayInMonth(dayParam)
+      ? dayParam
+      : isDayInMonth(today)
+        ? today
+        : `${month}-01`;
 
   if (isPending) {
     return <div>Ładowanie...</div>;
@@ -51,10 +67,14 @@ export const HoursPage = () => {
     (site) => site.is_active || site.id === selectedSite.id,
   );
 
-  const setParam = (key: 'site' | 'month', value: string) => {
+  const setParams = (
+    updates: Partial<Record<'site' | 'month' | 'day', string>>,
+  ) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
-      next.set(key, value);
+      for (const [key, value] of Object.entries(updates)) {
+        next.set(key, value);
+      }
       return next;
     });
   };
@@ -65,13 +85,25 @@ export const HoursPage = () => {
       <SiteTabs
         sites={tabSites}
         selectedSiteId={selectedSite.id}
-        onSelect={(id) => setParam('site', id)}
+        onSelect={(id) => setParams({ site: id })}
       />
-      <MonthSwitcher
-        month={month}
-        onChange={(value) => setParam('month', value)}
-      />
-      <HoursGrid siteId={selectedSite.id} month={month} />
+      {isMobile ? (
+        <DayView
+          siteId={selectedSite.id}
+          day={day}
+          onDayChange={(value) =>
+            setParams({ day: value, month: value.slice(0, 7) })
+          }
+        />
+      ) : (
+        <>
+          <MonthSwitcher
+            month={month}
+            onChange={(value) => setParams({ month: value })}
+          />
+          <HoursGrid siteId={selectedSite.id} month={month} />
+        </>
+      )}
     </div>
   );
 };
