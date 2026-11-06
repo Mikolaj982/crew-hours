@@ -17,7 +17,7 @@ export const parseHours = (text: string): ParseHoursResult => {
   const hours = Number(trimmed.replace(',', '.'));
 
   if (hours > 24) {
-    return { ok: false, error: 'Godziny muszą być w zakresie 0–24' };
+    return { ok: false, error: 'Godziny muszą być w zakresie 0-24' };
   }
 
   if (!Number.isInteger(hours * 2)) {
