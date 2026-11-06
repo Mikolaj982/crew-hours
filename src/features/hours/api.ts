@@ -1,10 +1,8 @@
-import { addMonths, format, parse } from 'date-fns';
 import { supabase } from '../../lib/supabase';
+import { getMonthRange } from './calendar';
 
 export const fetchTimeEntries = async (month: string, siteId: string) => {
-  const start = parse(month, 'yyyy-MM', new Date());
-  const from = format(start, 'yyyy-MM-dd');
-  const to = format(addMonths(start, 1), 'yyyy-MM-dd');
+  const { from, to } = getMonthRange(month);
 
   const { data } = await supabase
     .from('time_entries')

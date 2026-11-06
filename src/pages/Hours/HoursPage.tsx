@@ -5,10 +5,8 @@ import { SiteTabs } from '../../features/hours/SiteTabs';
 import { MonthSwitcher } from '../../features/hours/MonthSwitcher';
 import { HoursGrid } from '../../features/hours/HoursGrid';
 import { DayView } from '../../features/hours/DayView';
-import { getMonthDays } from '../../features/hours/calendar';
+import { getMonthDays, parseMonthParam } from '../../features/hours/calendar';
 import { useMediaQuery, useTheme } from '@mui/material';
-
-const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export const HoursPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,11 +15,7 @@ export const HoursPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const today = format(new Date(), 'yyyy-MM-dd');
-  const monthParam = searchParams.get('month');
-  const month =
-    monthParam && MONTH_PATTERN.test(monthParam)
-      ? monthParam
-      : today.slice(0, 7);
+  const month = parseMonthParam(searchParams.get('month'));
 
   const dayParam = searchParams.get('day');
   const isDayInMonth = (date: string) =>
