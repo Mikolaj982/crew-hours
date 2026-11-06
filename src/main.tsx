@@ -14,12 +14,14 @@ import { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { StaffAndSitesPage } from './pages/StaffAndSites/StaffAndSitesPage.tsx';
+import { ReportPage } from './pages/Report/ReportPage.tsx';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   {
     element: <ProtectedRoutes />,
     children: [
+      { path: '/report/:siteId', element: <ReportPage /> },
       {
         element: <Layout />,
         children: [
