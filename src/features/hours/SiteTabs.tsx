@@ -23,6 +23,7 @@ export const SiteTabs = ({
       {sites.map((site) => (
         <Tab
           key={site.id}
+          sx={{ maxWidth: 240, overflowWrap: 'anywhere' }}
           value={site.id}
           label={site.is_active ? site.name : `${site.name} (archiwum)`}
         />

@@ -7,6 +7,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   Typography,
@@ -17,6 +18,7 @@ import { useTimeEntries } from '../hours/useTimeEntries';
 import { buildHoursMatrix } from '../hours/matrix';
 import { formatHours, getMonthDays } from '../hours/calendar';
 import { Loading } from '../../components/Loading';
+import { ClampedText } from '../../components/ClampedText';
 
 type SiteReportProps = {
   siteId: string;
@@ -84,57 +86,63 @@ export const SiteReport = ({ siteId, month }: SiteReportProps) => {
       {people.length === 0 ? (
         <Alert severity="info">Brak godzin w tym miesiącu.</Alert>
       ) : (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Dzień</TableCell>
-              {people.map((employee) => (
-                <TableCell key={employee.id} align="center">
-                  {employee.name}
-                </TableCell>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Dzień</TableCell>
+                {people.map((employee) => (
+                  <TableCell
+                    key={employee.id}
+                    align="center"
+                    sx={{ minWidth: 64, maxWidth: 120 }}
+                  >
+                    <ClampedText text={employee.name} />
+                  </TableCell>
+                ))}
+                <TableCell align="right">Suma</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {days.map((day) => (
+                <TableRow
+                  key={day.date}
+                  sx={day.isWeekend ? { bgcolor: 'action.hover' } : undefined}
+                >
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                    {day.weekday} {day.dayOfMonth}
+                  </TableCell>
+                  {people.map((employee) => {
+                    const hours = matrix[employee.id]?.[day.date];
+                    return (
+                      <TableCell key={employee.id} align="center">
+                        {hours !== undefined && formatHours(hours)}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell align="right">
+                    {formatHours(sumDay(day.date))}
+                  </TableCell>
+                </TableRow>
               ))}
-              <TableCell align="right">Suma</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {days.map((day) => (
-              <TableRow
-                key={day.date}
-                sx={day.isWeekend ? { bgcolor: 'action.hover' } : undefined}
-              >
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {day.weekday} {day.dayOfMonth}
-                </TableCell>
-                {people.map((employee) => {
-                  const hours = matrix[employee.id]?.[day.date];
-                  return (
-                    <TableCell key={employee.id} align="center">
-                      {hours !== undefined && formatHours(hours)}
-                    </TableCell>
-                  );
-                })}
-                <TableCell align="right">
-                  {formatHours(sumDay(day.date))}
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold' }}>Razem</TableCell>
+                {people.map((employee) => (
+                  <TableCell
+                    key={employee.id}
+                    align="center"
+                    sx={{ fontWeight: 'bold' }}
+                  >
+                    {formatHours(sumEmployee(employee.id))}
+                  </TableCell>
+                ))}
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                  {formatHours(total)}
                 </TableCell>
               </TableRow>
-            ))}
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Razem</TableCell>
-              {people.map((employee) => (
-                <TableCell
-                  key={employee.id}
-                  align="center"
-                  sx={{ fontWeight: 'bold' }}
-                >
-                  {formatHours(sumEmployee(employee.id))}
-                </TableCell>
-              ))}
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                {formatHours(total)}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       <Box
