@@ -20,3 +20,13 @@ export const getVisibleEmployees = (
   employees: Tables<'employees'>[],
   matrix: HoursMatrix,
 ) => employees.filter((employee) => employee.is_active || matrix[employee.id]);
+
+export const getDayTotals = (entries: TimeEntry[]) => {
+  const totals: Record<IsoDate, number> = {};
+
+  for (const entry of entries) {
+    totals[entry.date] = (totals[entry.date] ?? 0) + entry.hours;
+  }
+
+  return totals;
+};

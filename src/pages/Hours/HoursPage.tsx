@@ -1,10 +1,9 @@
-import { Link, useSearchParams } from 'react-router';
-import { format } from 'date-fns';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useSites } from '../../features/sites/useSites';
 import { SiteTabs } from '../../features/hours/SiteTabs';
 import { MonthSwitcher } from '../../features/hours/MonthSwitcher';
 import { HoursGrid } from '../../features/hours/HoursGrid';
-import { DayView } from '../../features/hours/DayView';
+import { MobileHours } from '../../features/hours/MobileHours';
 import { getMonthDays, parseMonthParam } from '../../features/hours/calendar';
 import {
   Alert,
@@ -16,24 +15,24 @@ import {
 } from '@mui/material';
 import { Loading } from '../../components/Loading';
 
+const DAY_PANEL_STATE = 'dayPanel';
+
 export const HoursPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: sites, isPending, isError } = useSites();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const month = parseMonthParam(searchParams.get('month'));
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  const month = parseMonthParam(searchParams.get('month'));
   const dayParam = searchParams.get('day');
-  const isDayInMonth = (date: string) =>
-    getMonthDays(month).some((monthDay) => monthDay.date === date);
-  const day =
-    dayParam && isDayInMonth(dayParam)
+  const openDay =
+    dayParam && getMonthDays(month).some((day) => day.date === dayParam)
       ? dayParam
-      : isDayInMonth(today)
-        ? today
-        : `${month}-01`;
+      : null;
+  const isPanelInHistory = location.state === DAY_PANEL_STATE;
 
   if (isPending) {
     return <Loading />;
@@ -83,15 +82,28 @@ export const HoursPage = () => {
   );
 
   const setParams = (
-    updates: Partial<Record<'site' | 'month' | 'day', string>>,
+    updates: Partial<Record<'site' | 'month' | 'day', string | null>>,
+    options?: { replace?: boolean; state?: unknown },
   ) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       for (const [key, value] of Object.entries(updates)) {
-        next.set(key, value);
+        if (value === null) {
+          next.delete(key);
+        } else {
+          next.set(key, value);
+        }
       }
       return next;
-    });
+    }, options);
+  };
+
+  const closeDayPanel = () => {
+    if (isPanelInHistory) {
+      navigate(-1);
+    } else {
+      setParams({ day: null }, { replace: true });
+    }
   };
 
   return (
@@ -104,12 +116,21 @@ export const HoursPage = () => {
         />
       </Paper>
       {isMobile ? (
-        <DayView
+        <MobileHours
           siteId={selectedSite.id}
-          day={day}
-          onDayChange={(value) =>
-            setParams({ day: value, month: value.slice(0, 7) })
+          month={month}
+          openDay={openDay}
+          onMonthChange={(value) => setParams({ month: value })}
+          onOpenDay={(value) =>
+            setParams({ day: value }, { state: DAY_PANEL_STATE })
           }
+          onDayChange={(value) =>
+            setParams(
+              { day: value, month: value.slice(0, 7) },
+              { replace: true, state: location.state },
+            )
+          }
+          onClose={closeDayPanel}
         />
       ) : (
         <>
