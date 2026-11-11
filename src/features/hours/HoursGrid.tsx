@@ -28,7 +28,9 @@ const stickyCell: SxProps<Theme> = {
   left: 0,
   zIndex: 1,
   bgcolor: 'background.paper',
-  whiteSpace: 'nowrap',
+  minWidth: 120,
+  maxWidth: 200,
+  overflowWrap: 'anywhere',
   borderRight: 1,
   borderRightColor: 'divider',
 };

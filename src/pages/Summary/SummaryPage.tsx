@@ -22,6 +22,7 @@ import { formatHours, parseMonthParam } from '../../features/hours/calendar';
 import { useMonthSummary } from '../../features/summary/useMonthSummary';
 import { buildSummary } from '../../features/summary/summary';
 import { Loading } from '../../components/Loading';
+import { ClampedText } from '../../components/ClampedText';
 
 const statCards = {
   display: 'grid',
@@ -30,6 +31,8 @@ const statCards = {
 };
 
 const totalCell = { fontWeight: 'bold' };
+
+const nameCell = { minWidth: 90, maxWidth: 160 };
 
 export const SummaryPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -57,9 +60,14 @@ export const SummaryPage = () => {
       <>
         <Box sx={statCards}>
           {sites.map((site) => (
-            <Card key={site.id} variant="outlined">
+            <Card key={site.id} variant="outlined" sx={{ minWidth: 0 }}>
               <CardContent sx={{ pb: 0 }}>
-                <Typography variant="body2" color="text.secondary" noWrap>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  noWrap
+                  title={site.name}
+                >
                   {site.name}
                 </Typography>
                 <Typography variant="h4" component="p">
@@ -99,8 +107,8 @@ export const SummaryPage = () => {
               <TableRow>
                 <TableCell>Pracownik</TableCell>
                 {sites.map((site) => (
-                  <TableCell key={site.id} align="right">
-                    {site.name}
+                  <TableCell key={site.id} align="right" sx={nameCell}>
+                    <ClampedText text={site.name} />
                   </TableCell>
                 ))}
                 <TableCell align="right" sx={totalCell}>
@@ -111,8 +119,8 @@ export const SummaryPage = () => {
             <TableBody>
               {employees.map((employee) => (
                 <TableRow key={employee.id} hover>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                    {employee.name}
+                  <TableCell sx={nameCell}>
+                    <ClampedText text={employee.name} />
                   </TableCell>
                   {sites.map((site) => {
                     const hours = employee.bySite[site.id];

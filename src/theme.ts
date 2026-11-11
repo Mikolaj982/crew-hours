@@ -9,6 +9,9 @@ export const theme = createTheme(
     },
     shape: { borderRadius: 8 },
     components: {
+      MuiCssBaseline: {
+        styleOverrides: { body: { overflowWrap: 'break-word' } },
+      },
       MuiButton: {
         defaultProps: { disableElevation: true },
         styleOverrides: { root: { textTransform: 'none' } },
