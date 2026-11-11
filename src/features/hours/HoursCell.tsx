@@ -3,6 +3,7 @@ import { useHoursInput } from './useHoursInput';
 import { dayCellBg } from './dayCellBg';
 
 type HoursCellProps = {
+  label: string;
   employeeId: string;
   siteId: string;
   date: string;
@@ -12,7 +13,7 @@ type HoursCellProps = {
 };
 
 export const HoursCell = ({ isWeekend, isToday, ...entry }: HoursCellProps) => {
-  const { text, setText, error, isPending, save, blurOnEnter } =
+  const { text, change, error, isPending, save, blurOnEnter, inputRef } =
     useHoursInput(entry);
 
   return (
@@ -38,13 +39,14 @@ export const HoursCell = ({ isWeekend, isToday, ...entry }: HoursCellProps) => {
       }}
     >
       <input
+        ref={inputRef}
         value={text}
-        onChange={(event) => setText(event.target.value)}
+        onChange={(event) => change(event.target.value)}
         onBlur={save}
         onKeyDown={blurOnEnter}
         inputMode="decimal"
         title={error ?? undefined}
-        aria-label={`Godziny ${entry.date}`}
+        aria-label={`Godziny: ${entry.label}`}
         aria-invalid={error !== null}
         style={{ opacity: isPending ? 0.5 : 1 }}
       />

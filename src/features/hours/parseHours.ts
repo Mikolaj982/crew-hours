@@ -21,7 +21,10 @@ export const parseHours = (text: string): ParseHoursResult => {
   }
 
   if (!Number.isInteger(hours * 2)) {
-    return { ok: false, error: 'Dozwolone są pełne lub połówkowe godziny' };
+    return {
+      ok: false,
+      error: 'Wpisz pełne albo połówkowe godziny, np. 6,5 lub 7',
+    };
   }
 
   return { ok: true, hours: hours === 0 ? null : hours };

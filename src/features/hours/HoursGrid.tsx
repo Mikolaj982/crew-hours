@@ -119,6 +119,7 @@ export const HoursGrid = ({ siteId, month }: HoursGridProps) => {
               {days.map((day) => (
                 <HoursCell
                   key={day.date}
+                  label={`${employee.name}, ${day.weekday} ${day.dayOfMonth}`}
                   employeeId={employee.id}
                   siteId={siteId}
                   date={day.date}

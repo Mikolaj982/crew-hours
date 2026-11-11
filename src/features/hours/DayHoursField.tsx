@@ -9,15 +9,16 @@ type DayHoursFieldProps = {
   savedHours: number | undefined;
 };
 
-export const DayHoursField = ({ label, ...entry }: DayHoursFieldProps) => {
-  const { text, setText, error, isPending, save, blurOnEnter } =
-    useHoursInput(entry);
+export const DayHoursField = (props: DayHoursFieldProps) => {
+  const { text, change, error, isPending, save, blurOnEnter, inputRef } =
+    useHoursInput(props);
 
   return (
     <TextField
-      label={label}
+      label={props.label}
+      inputRef={inputRef}
       value={text}
-      onChange={(event) => setText(event.target.value)}
+      onChange={(event) => change(event.target.value)}
       onBlur={save}
       onKeyDown={blurOnEnter}
       error={error !== null}
