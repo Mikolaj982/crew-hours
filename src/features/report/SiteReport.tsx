@@ -1,24 +1,23 @@
+import { useRef, useState } from 'react';
 import { format, parse } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import {
-  Alert,
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import ShareIcon from '@mui/icons-material/Share';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useSites } from '../sites/useSites';
 import { useEmployees } from '../employees/useEmployees';
 import { useTimeEntries } from '../hours/useTimeEntries';
 import { buildHoursMatrix } from '../hours/matrix';
-import { formatHours, getMonthDays } from '../hours/calendar';
+import { getMonthDays } from '../hours/calendar';
 import { Loading } from '../../components/Loading';
-import { ClampedText } from '../../components/ClampedText';
+import { ReportGrid } from './ReportGrid';
+import {
+  canShareFiles,
+  downloadFile,
+  renderPng,
+  shareFile,
+  toFileName,
+} from './exportImage';
 
 type SiteReportProps = {
   siteId: string;
@@ -31,6 +30,9 @@ export const SiteReport = ({ siteId, month }: SiteReportProps) => {
   const sitesQuery = useSites();
   const employeesQuery = useEmployees();
   const entriesQuery = useTimeEntries(month, siteId);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   if (
     sitesQuery.isPending ||
@@ -52,116 +54,86 @@ export const SiteReport = ({ siteId, month }: SiteReportProps) => {
 
   const matrix = buildHoursMatrix(entriesQuery.data);
   const people = employeesQuery.data.filter((employee) => matrix[employee.id]);
-  const days = getMonthDays(month).filter((day) =>
-    people.some((employee) => matrix[employee.id]?.[day.date] !== undefined),
-  );
-  const sumEmployee = (employeeId: string) =>
-    Object.values(matrix[employeeId] ?? {}).reduce((sum, h) => sum + h, 0);
-  const sumDay = (date: string) =>
-    people.reduce((sum, e) => sum + (matrix[e.id]?.[date] ?? 0), 0);
-  const total = entriesQuery.data.reduce((sum, entry) => sum + entry.hours, 0);
   const monthName = format(parse(month, 'yyyy-MM', new Date()), 'LLLL yyyy', {
     locale: pl,
   });
   const period = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+  const canShare = canShareFiles();
+
+  const handleExport = async (mode: 'share' | 'download') => {
+    if (!gridRef.current) {
+      return;
+    }
+
+    setIsExporting(true);
+    setExportError(null);
+
+    try {
+      const file = await renderPng(
+        gridRef.current,
+        toFileName('raport', site.name, month),
+      );
+
+      if (mode === 'share') {
+        await shareFile(file, `${site.name}, ${period}`);
+      } else {
+        downloadFile(file);
+      }
+    } catch (error) {
+      console.error('Error exporting report', error);
+      setExportError('Nie udało się przygotować pliku. Spróbuj ponownie.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  if (people.length === 0) {
+    return (
+      <Alert severity="info">Brak godzin na tej budowie w tym miesiącu.</Alert>
+    );
+  }
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
-      {companyName && (
-        <Typography
-          variant="overline"
-          color="text.secondary"
-          sx={{ display: 'block', lineHeight: 1.5 }}
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+        {canShare && (
+          <Button
+            variant="contained"
+            startIcon={<ShareIcon />}
+            disabled={isExporting}
+            onClick={() => handleExport('share')}
+          >
+            Udostępnij
+          </Button>
+        )}
+        <Button
+          variant={canShare ? 'outlined' : 'contained'}
+          startIcon={<DownloadIcon />}
+          disabled={isExporting}
+          onClick={() => handleExport('download')}
         >
-          {companyName}
-        </Typography>
-      )}
-      <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
-        {site.name}
-      </Typography>
-      <Typography color="text.secondary" sx={{ mb: 2 }}>
-        Godziny pracy · {period}
-      </Typography>
+          Pobierz PNG
+        </Button>
+      </Stack>
 
-      {people.length === 0 ? (
-        <Alert severity="info">Brak godzin w tym miesiącu.</Alert>
-      ) : (
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Dzień</TableCell>
-                {people.map((employee) => (
-                  <TableCell
-                    key={employee.id}
-                    align="center"
-                    sx={{ minWidth: 64, maxWidth: 120 }}
-                  >
-                    <ClampedText text={employee.name} />
-                  </TableCell>
-                ))}
-                <TableCell align="right">Suma</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {days.map((day) => (
-                <TableRow
-                  key={day.date}
-                  sx={day.isWeekend ? { bgcolor: 'action.hover' } : undefined}
-                >
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                    {day.weekday} {day.dayOfMonth}
-                  </TableCell>
-                  {people.map((employee) => {
-                    const hours = matrix[employee.id]?.[day.date];
-                    return (
-                      <TableCell key={employee.id} align="center">
-                        {hours !== undefined && formatHours(hours)}
-                      </TableCell>
-                    );
-                  })}
-                  <TableCell align="right">
-                    {formatHours(sumDay(day.date))}
-                  </TableCell>
-                </TableRow>
-              ))}
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Razem</TableCell>
-                {people.map((employee) => (
-                  <TableCell
-                    key={employee.id}
-                    align="center"
-                    sx={{ fontWeight: 'bold' }}
-                  >
-                    {formatHours(sumEmployee(employee.id))}
-                  </TableCell>
-                ))}
-                <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                  {formatHours(total)}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      {exportError && <Alert severity="error">{exportError}</Alert>}
 
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          mt: 2,
-          p: 2,
-          borderRadius: 1,
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
-        }}
-      >
-        <Typography>Razem</Typography>
-        <Typography variant="h5" component="p" sx={{ fontWeight: 'bold' }}>
-          {formatHours(total)} h
+      <Box>
+        <Typography variant="caption" color="text.secondary">
+          Podgląd pliku. Na telefonie przesuń w bok, aby zobaczyć cały miesiąc.
         </Typography>
+        <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
+          <ReportGrid
+            ref={gridRef}
+            companyName={companyName}
+            siteName={site.name}
+            period={period}
+            days={getMonthDays(month)}
+            people={people}
+            matrix={matrix}
+          />
+        </Paper>
       </Box>
-    </Paper>
+    </Stack>
   );
 };

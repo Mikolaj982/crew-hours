@@ -10,21 +10,21 @@ export const ReportPage = () => {
   const month = parseMonthParam(searchParams.get('month'));
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: 2 }}>
-      {siteId ? (
-        <SiteReport siteId={siteId} month={month} />
-      ) : (
-        <Alert severity="warning">Nie wybrano budowy.</Alert>
-      )}
+    <Box sx={{ maxWidth: 1480, mx: 'auto', p: 2 }}>
       <Button
         component={Link}
         to={`/summary?month=${month}`}
         startIcon={<ArrowBackIcon />}
         size="small"
-        sx={{ mt: 3 }}
+        sx={{ mb: 2 }}
       >
         Wróć do podsumowania
       </Button>
+      {siteId ? (
+        <SiteReport siteId={siteId} month={month} />
+      ) : (
+        <Alert severity="warning">Nie wybrano budowy.</Alert>
+      )}
     </Box>
   );
 };
