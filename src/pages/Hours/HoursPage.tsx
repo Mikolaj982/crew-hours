@@ -4,6 +4,8 @@ import { SiteTabs } from '../../features/hours/SiteTabs';
 import { MonthSwitcher } from '../../features/hours/MonthSwitcher';
 import { HoursGrid } from '../../features/hours/HoursGrid';
 import { MobileHours } from '../../features/hours/MobileHours';
+import { InvalidInputsProvider } from '../../features/hours/InvalidInputsProvider';
+import { UnsavedHoursGuard } from '../../features/hours/UnsavedHoursGuard';
 import { getMonthDays, parseMonthParam } from '../../features/hours/calendar';
 import {
   Alert,
@@ -107,40 +109,47 @@ export const HoursPage = () => {
   };
 
   return (
-    <Stack spacing={2}>
-      <Paper variant="outlined">
-        <SiteTabs
-          sites={tabSites}
-          selectedSiteId={selectedSite.id}
-          onSelect={(id) => setParams({ site: id })}
-        />
-      </Paper>
-      {isMobile ? (
-        <MobileHours
-          siteId={selectedSite.id}
-          month={month}
-          openDay={openDay}
-          onMonthChange={(value) => setParams({ month: value })}
-          onOpenDay={(value) =>
-            setParams({ day: value }, { state: DAY_PANEL_STATE })
-          }
-          onDayChange={(value) =>
-            setParams(
-              { day: value, month: value.slice(0, 7) },
-              { replace: true, state: location.state },
-            )
-          }
-          onClose={closeDayPanel}
-        />
-      ) : (
-        <>
-          <MonthSwitcher
-            month={month}
-            onChange={(value) => setParams({ month: value })}
+    <InvalidInputsProvider>
+      <UnsavedHoursGuard />
+      <Stack spacing={2}>
+        <Paper variant="outlined">
+          <SiteTabs
+            sites={tabSites}
+            selectedSiteId={selectedSite.id}
+            onSelect={(id) => setParams({ site: id })}
           />
-          <HoursGrid siteId={selectedSite.id} month={month} />
-        </>
-      )}
-    </Stack>
+        </Paper>
+        {isMobile ? (
+          <MobileHours
+            siteId={selectedSite.id}
+            month={month}
+            openDay={openDay}
+            onMonthChange={(value) => setParams({ month: value })}
+            onOpenDay={(value) =>
+              setParams({ day: value }, { state: DAY_PANEL_STATE })
+            }
+            onDayChange={(value) =>
+              setParams(
+                { day: value, month: value.slice(0, 7) },
+                { replace: true, state: location.state },
+              )
+            }
+            onClose={closeDayPanel}
+          />
+        ) : (
+          <>
+            <MonthSwitcher
+              month={month}
+              onChange={(value) => setParams({ month: value })}
+            />
+            <HoursGrid
+              key={`${selectedSite.id}-${month}`}
+              siteId={selectedSite.id}
+              month={month}
+            />
+          </>
+        )}
+      </Stack>
+    </InvalidInputsProvider>
   );
 };
