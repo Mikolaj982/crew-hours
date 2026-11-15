@@ -3,7 +3,11 @@ import type { Tables } from '../../types/database.types';
 type EmployeeId = string;
 type IsoDate = string;
 export type HoursMatrix = Record<EmployeeId, Record<IsoDate, number>>;
-type TimeEntry = Pick<Tables<'time_entries'>, 'employee_id' | 'date' | 'hours'>;
+export type TimeEntry = Pick<
+  Tables<'time_entries'>,
+  'employee_id' | 'date' | 'hours'
+>;
+export type EmployeeVisibility = Pick<Tables<'employees'>, 'id' | 'is_active'>;
 
 export const buildHoursMatrix = (entries: TimeEntry[]): HoursMatrix => {
   const matrix: HoursMatrix = {};
@@ -16,8 +20,8 @@ export const buildHoursMatrix = (entries: TimeEntry[]): HoursMatrix => {
   return matrix;
 };
 
-export const getVisibleEmployees = (
-  employees: Tables<'employees'>[],
+export const getVisibleEmployees = <T extends EmployeeVisibility>(
+  employees: T[],
   matrix: HoursMatrix,
 ) => employees.filter((employee) => employee.is_active || matrix[employee.id]);
 
